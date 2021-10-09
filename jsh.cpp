@@ -43,10 +43,10 @@ vector<string> split (string line){
 int main()
 {
 
-  pid_t pid;  		// child PID after fork
-  string cmd_line;	// command line with arguments
-  int wait_status;	// the status of the child after returning
-  int argc;		// argument count
+  pid_t pid;        // child PID after fork
+  string cmd_line;  // command line with arguments
+  int wait_status;  // the status of the child after returning
+  int argc=0;       // argument count
   
   while (true){
     cout << "MyShellPrompt$ ";
@@ -74,12 +74,12 @@ int main()
     // here below we calculate the number of arguments comprizing the command line
     // value will be in argc
     while ( p !=0 ){
-	    argc++;
+        argc++;
 #ifdef DEBUG
-	    cout << p << '\n';
+        cout << p << '\n';
 #endif
-	    p = strtok( NULL,  " " );
-	  }
+        p = strtok( NULL,  " " );
+    }
 #ifdef DEBUG
     cout << "argc = " << argc << '\n';
 #endif
@@ -95,15 +95,15 @@ int main()
     p = strtok(argv_str, " ");
     argc = 0;  // reset argc
     while ( p !=0 ){
-	    argv[argc] = (char *) malloc(strlen(p));
-	    strcpy( argv[argc], p);
+      argv[argc] = (char *) malloc(strlen(p));
+      strcpy( argv[argc], p);
 #ifdef DEBUG
-	    cout << argc << "-> " << argv[argc] << '\n';
-	    cout << p << '\n';
+      cout << argc << "-> " << argv[argc] << '\n';
+      cout << p << '\n';
 #endif
-	    argc++;
-	    p = strtok( NULL,  " " );
-	  }
+      argc++;
+      p = strtok( NULL,  " " );
+    }
       
     // now add the requisite NULL required by execvp
     argv[argc] = NULL;
@@ -114,17 +114,16 @@ int main()
     pid = fork();
     if (pid == 0){ // HERE WE ARE IN THE CHILD CODE
       
-      
       int exec_retval = 0;
       exec_retval = execvp ( argv[0], argv );
 #ifdef DEBUG      
       cout << exec_retval << '\n';
 #endif
       if( exec_retval == -1 )
-	    {
-	      cout << "Command " << argv[0] << " not found! \n";
-	      break;
-	    }
+      {
+        cout << "Command " << argv[0] << " not found! \n";
+        break;
+      }
     }else{         // HERE WE ARE IN THE PARENT CODE
       waitpid(pid, &wait_status, 0 ); // parent waits for child
     }
