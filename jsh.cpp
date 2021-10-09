@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -12,13 +11,42 @@ using namespace std;
 
 extern char **environ;
 
+void trim (string& input){
+  int i = 0;
+  while(i < input.size() && input[i] == ' '){
+    i++;
+  }
+  
+  int j = input.size()-1;
+  while(j>=0 && input[j] == ' '){
+    j--;
+  }
+  input = input.substr(i,j-i+1);
+}
+
+vector<string> split (string line){
+  vector<string> args;
+  size_t p = 0;
+  while ((p = line.find(' ')) != std::string::npos){
+    string sub = line.substr(0,p);
+    if(sub == ""){
+      line.erase(0,1);
+    } else{
+      args.push_back(sub);
+      line.erase(0,p+1);
+    }
+  }
+  args.push_back(line);
+  return args;
+}
+
 int main()
 {
 
   pid_t pid;  		// child PID after fork
   string cmd_line;	// command line with arguments
   int wait_status;	// the status of the child after returning
-  int argc=0;		// argument count
+  int argc;		// argument count
   
   while (true){
     cout << "MyShellPrompt$ ";
@@ -28,7 +56,13 @@ int main()
       break;
     }
 
+    trim(cmd_line);
+    vector<string> argstr = split(cmd_line);
+    for(int i=0; i<argstr.size();i++){
+      printf("argstr[%d] = %s\n",i,argstr[i].c_str());
+    }
 
+/*
     // prepare the input command for execution
     
     char * argv_str = new char [cmd_line.length()+1];   // allocate space for the NULL
@@ -36,7 +70,7 @@ int main()
       
     char * p = strtok(argv_str, " ");
 
-
+    argc = 0;
     // here below we calculate the number of arguments comprizing the command line
     // value will be in argc
     while ( p !=0 ){
@@ -47,7 +81,7 @@ int main()
 	    p = strtok( NULL,  " " );
 	  }
 #ifdef DEBUG
-    cout << argc << '\n';
+    cout << "argc = " << argc << '\n';
 #endif
 
     // now argc has the number of arguments including the command and all options.
@@ -94,5 +128,6 @@ int main()
     }else{         // HERE WE ARE IN THE PARENT CODE
       waitpid(pid, &wait_status, 0 ); // parent waits for child
     }
+    */
   }
 }
