@@ -11,8 +11,8 @@ class ExecutionPlan {
     public:
 
         vector<Command> commands;
-        string stdinRedirect;
-        string stdoutRedirect;
+        string stdinRedirect; //filename of the redirected stdin otherwise empty string
+        string stdoutRedirect; //filename of the redirected stdout otherwise empty string
         bool backGround;
 
         ExecutionPlan(vector<string> inputs){ //expects inputs strings to be trimmed
