@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include "executionplan.h"
 //using std::string, std::cout, std::cin, std::getline, std::endl, std::strcpy, std::strtok;
 using namespace std;
 // required extern definition for exec family of commands
@@ -26,15 +27,33 @@ void trim (string& input){
 
 vector<string> split (string line){
   vector<string> args;
+  string sub;
   size_t p = 0;
+  size_t q;
+  size_t q2;
   while ((p = line.find(' ')) != std::string::npos){
-    string sub = line.substr(0,p);
-    if(sub == ""){
-      line.erase(0,1);
-    } else{
+    q = line.find('\'');
+    q2 = line.find('\"');
+    if( ((q2 < p) && (line.find('\"',1) != std::string::npos)) ){
+      sub = line.substr(1,line.find('\"',1)-1);
       args.push_back(sub);
-      line.erase(0,p+1);
+      line.erase(0,line.find('\"',1)+1);
+    } else if( ((q < p) && (line.find('\'',1) != std::string::npos)) ){
+      sub = line.substr(1,line.find('\'',1)-1);
+      args.push_back(sub);
+      line.erase(0,line.find('\'',1)+1);
+    } else {
+      sub = line.substr(0,p);
+      if(sub == ""){
+        line.erase(0,1);
+      } else{
+        args.push_back(sub);
+        line.erase(0,p+1);
+      }
     }
+  }
+  if(line.front() == '\'' && line.back() == '\'' || line.front() == '\"' && line.back() == '\"'){
+    line = line.substr(1,line.size()-2);
   }
   args.push_back(line);
   return args;
@@ -47,20 +66,26 @@ int main()
   string cmd_line;	// command line with arguments
   int wait_status;	// the status of the child after returning
   int argc;		// argument count
+  int in_def; // save the std in and out values
+  int out_def;
   
   while (true){
-    cout << "MyShellPrompt$ ";
+    dup2(in_def,0);
+    dup2(out_def,1);
+    char* username = getenv("USER");
+    printf("%s@MyShellPrompt$ ",username);
     getline (cin, cmd_line);
+    trim(cmd_line);
     if (cmd_line == string("exit")){
       cout << "Bye! End of Shell" << endl;
       break;
     }
 
-    trim(cmd_line);
-    vector<string> argstr = split(cmd_line);
-    for(int i=0; i<argstr.size();i++){
-      printf("argstr[%d] = %s\n",i,argstr[i].c_str());
-    }
+    
+    ExecutionPlan ep (split(cmd_line));
+#ifdef DEBUG
+    ep.printEP();
+#endif
 
 /*
     // prepare the input command for execution
@@ -109,25 +134,34 @@ int main()
     argv[argc] = NULL;
 
     // now argv is populated with the command all options and arguments
-
-
-    pid = fork();
-    if (pid == 0){ // HERE WE ARE IN THE CHILD CODE
-      
-      
-      int exec_retval = 0;
-      exec_retval = execvp ( argv[0], argv );
+*/
+    int numcommands = ep.commands.size();
+    int numargs;
+    for(int i = 0; i < numcommands; i++){
+      numargs = ep.commands[i].size();
+      char * cmd[numargs+1];
+      for(int j = 0; j < numargs; j++){
+        cmd[j] = (char *) malloc(strlen(ep.commands[i][j].c_str()));
+        strcpy (cmd[j], ep.commands[i][j].c_str());
+      }
+      cmd[ep.commands[i].size()] = NULL;
+      pid = fork();
+      if (pid == 0){ // HERE WE ARE IN THE CHILD CODE
+        
+        
+        int exec_retval = 0;
+        exec_retval = execvp ( cmd[0], cmd );
 #ifdef DEBUG      
-      cout << exec_retval << '\n';
+        cout << exec_retval << '\n';
 #endif
-      if( exec_retval == -1 )
-	    {
-	      cout << "Command " << argv[0] << " not found! \n";
-	      break;
-	    }
-    }else{         // HERE WE ARE IN THE PARENT CODE
-      waitpid(pid, &wait_status, 0 ); // parent waits for child
+        if( exec_retval == -1 )
+        {
+          cout << "Command " << cmd[0] << " not found! \n";
+          break;
+        }
+      }else{         // HERE WE ARE IN THE PARENT CODE
+        waitpid(pid, &wait_status, 0 ); // parent waits for child
+      }
     }
-    */
   }
 }
