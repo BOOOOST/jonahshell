@@ -85,7 +85,7 @@ int main(int argc, char** argv)
   {
     // Argument given, open the file and use it
     file.open(argv[1]);
-    //ckeck if opened successfully and set the inpt to the file
+    //check if opened successfully and set the inpt to the file
     if (file)
     {
       input = &file;
