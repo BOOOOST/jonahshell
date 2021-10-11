@@ -6,6 +6,11 @@
 #include <unistd.h>
 #include <vector>
 #include "executionplan.h"
+
+// for testing cmds from a file
+#include <fstream>
+
+
 //using std::string, std::cout, std::cin, std::getline, std::endl, std::strcpy, std::strtok;
 using namespace std;
 // required extern definition for exec family of commands
@@ -59,7 +64,7 @@ vector<string> split (string line){
   return args;
 }
 
-int main()
+int main(int argc, char** argv)
 {
 
   pid_t pid;  		// child PID after fork
@@ -68,13 +73,35 @@ int main()
   int argc;		// argument count
   int in_def; // save the std in and out values
   int out_def;
-  
+  // for cmd line or file input
+  istream *input;
+  ifstream file;
+  if (argc == 1)
+  {
+    // No argument, just program name, use cin
+    input = &cin;
+  }
+  else
+  {
+    // Argument given, open the file and use it
+    file.open(argv[1]);
+    //ckeck if opened successfully and set the inpt to the file
+    if (file)
+    {
+      input = &file;
+    }
+    else
+    { // otherwise use cin as the input stream
+      input = &cin;
+    }
+  }
+
   while (true){
     dup2(in_def,0);
     dup2(out_def,1);
     char* username = getenv("USER");
     printf("%s@MyShellPrompt$ ",username);
-    getline (cin, cmd_line);
+    getline (input, cmd_line);
     trim(cmd_line);
     if (cmd_line == string("exit")){
       cout << "Bye! End of Shell" << endl;
@@ -163,5 +190,11 @@ int main()
         waitpid(pid, &wait_status, 0 ); // parent waits for child
       }
     }
+  } // end while
+
+  // if we opened a file, close it before exiting
+  if (argc > 1 && input == &cin)
+  {
+    input.close();
   }
 }

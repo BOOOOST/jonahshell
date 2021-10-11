@@ -1,0 +1,31 @@
+#normal cmds
+ls
+ps
+pwd
+env
+alias
+history
+echo
+
+# cmds with options
+ls -l
+ls -la
+grep -r include
+ps -ef
+cd ~
+
+#cmds with redirect
+history > hist.txt
+
+
+# $ expansion
+echo $PATH
+
+
+# leading, inner and trailing spaces
+    ls -a
+ls     -a
+ls -a    
+       ls          -a          
+
+# cmds with pipes
